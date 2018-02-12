@@ -10,11 +10,13 @@ import base64
 # Create your views here.
 @csrf_exempt
 def snow_plow_records(request):
-    auth_b64 = request.META['HTTP_AUTHORIZATION']
-    auth_str= base64.b64decode(auth_b64).decode()
-    usernanme, password = auth_str.split(':')
-    user = authenticate(username=usernanme, password=password)
-
+    if 'HTTP_AUTHORIZATION' in request.META:
+        auth_b64 = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+        auth_str= base64.b64decode(auth_b64).decode()
+        usernanme, password = auth_str.split(':')
+        user = authenticate(username=usernanme, password=password)
+    else:
+        return (HttpResponse('Unauthorized - no credentials', status=401))
 
     if user is None:
         # On bad authentication
@@ -24,5 +26,5 @@ def snow_plow_records(request):
             r = redis.StrictRedis(host='localhost', port=6379, db=0)
             r.rpush('snowman_records', request.body.decode())
             return(HttpResponse('Done', status=200))
-        else :
+        else:
             return(HttpResponse('Must use POST request', status=405))
