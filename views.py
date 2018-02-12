@@ -11,7 +11,10 @@ import base64
 @csrf_exempt
 def snow_plow_records(request):
     if 'HTTP_AUTHORIZATION' in request.META:
-        auth_b64 = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+        try:
+            auth_b64 = request.META['HTTP_AUTHORIZATION'].split(' ')[1]
+        except:
+            return (HttpResponse('Unauthorized - malformed credentials', status=401))
         auth_str= base64.b64decode(auth_b64).decode()
         usernanme, password = auth_str.split(':')
         user = authenticate(username=usernanme, password=password)
